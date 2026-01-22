@@ -37,7 +37,25 @@ def call_azure_openai(endpoint_url: str, api_key: str, prompt: str, timeout: int
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             body = resp.read().decode("utf-8")
-            return json.loads(body)
+
+            # Check if response is empty
+            if not body or not body.strip():
+                raise RuntimeError(
+                    f"Empty response from Azure OpenAI API.\n"
+                    f"Endpoint: {endpoint_url}\n"
+                    f"Status code: {resp.status}"
+                )
+
+            # Try to parse JSON and provide helpful error if it fails
+            try:
+                return json.loads(body)
+            except json.JSONDecodeError as json_err:
+                raise RuntimeError(
+                    f"Invalid JSON response from Azure OpenAI API.\n"
+                    f"Endpoint: {endpoint_url}\n"
+                    f"JSON Error: {json_err}\n"
+                    f"Response body (first 500 chars):\n{body[:500]}"
+                ) from json_err
 
     except urllib.error.HTTPError as e:
         err_body = e.read().decode("utf-8", errors="replace")
