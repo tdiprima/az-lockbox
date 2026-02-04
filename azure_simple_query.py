@@ -14,6 +14,11 @@ def call_azure_openai(endpoint_url: str, api_key: str, prompt: str, timeout: int
       https://YOUR-RESOURCE.openai.azure.com/openai/deployments/YOUR-DEPLOYMENT/chat/completions?api-version=2024-02-15-preview
     """
 
+    if not endpoint_url.startswith("https://"):
+        raise ValueError(
+            f"endpoint_url must use the https:// scheme, got: {endpoint_url!r}"
+        )
+
     payload = {
         "messages": [
             {"role": "system", "content": "You are a helpful assistant."},
